@@ -17,13 +17,13 @@ export default new Router({
       name: 'Apps',
       component: Apps,
       props: { page: 1 },
-      alias: '/'
     },
     {
       path: '/programming',
       name: 'Programming & Files',
       props: { page: 2 },
-      component: Programming
+      component: Programming,
+      alias: '/'
     },
     {
       path: '/update',

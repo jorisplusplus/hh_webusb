@@ -122,13 +122,13 @@ export default {
       show: true,
       message_id: 1,
       messages: [],
-      activeItem: 1,
+      activeItem: 2,
       is_connected: device !== undefined && device.opened
     };
   },
   beforeMount() {
     component = this;
-    this.activeItem = this.$route.matched[0].props.default.page;
+    this.activeItem = 2;
   },
   mixins: [waves]
 };
