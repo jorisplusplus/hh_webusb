@@ -13,32 +13,32 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/apps',
+      path: '/hh_webusb/apps',
       name: 'Apps',
       component: Apps,
       props: { page: 1 },
     },
     {
-      path: '/programming',
+      path: '/hh_webusb/programming',
       name: 'Programming & Files',
       props: { page: 2 },
       component: Programming,
       alias: '/'
     },
     {
-      path: '/update',
+      path: '/hh_webusb/update',
       name: 'Update',
       props: { page: 3 },
       component: Update
     },
     {
-      path: '/settings',
+      path: '/hh_webusb/settings',
       name: 'Settings',
       props: { page: 4 },
       component: Settings
     },
     {
-      path: '/404',
+      path: '/hh_webusb/404',
       name: 'BadGateway',
       props: { page: 5 },
       component: BadGateway
@@ -46,7 +46,7 @@ export default new Router({
     {
       path: '*',
       props: { page: 5 },
-      redirect: '/404'
+      redirect: '/hh_webusb/404'
     }
   ]
 })
