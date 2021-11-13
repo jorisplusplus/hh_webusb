@@ -19,7 +19,7 @@
               class="mr-3"
             />Apps</mdb-list-group-item>
         </router-link> -->
-        <router-link to="/programming" @click.native="activeItem = 2">
+        <router-link to="/hh_webusb" @click.native="activeItem = 2">
           <mdb-list-group-item
                   :action="true"
                   :class="activeItem === 2 && 'active'"

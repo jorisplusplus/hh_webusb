@@ -46,7 +46,7 @@ export default new Router({
     {
       path: '*',
       props: { page: 5 },
-      redirect: '/hh_webusb/404'
+      redirect: '/hh_webusb'
     }
   ]
 })
