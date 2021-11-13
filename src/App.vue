@@ -10,7 +10,7 @@
     <div class="sidebar-fixed position-fixed">
       <a class="logo-wrapper"><img alt="" class="img-fluid" src="./assets/hackzone_logo.png"/></a>
       <mdb-list-group class="list-group-flush">
-        <router-link to="/apps" @click.native="activeItem = 1">
+        <!-- <router-link to="/apps" @click.native="activeItem = 1">
           <mdb-list-group-item
             :action="true"
             :class="activeItem === 1 && 'active'"
@@ -18,14 +18,14 @@
               icon="table"
               class="mr-3"
             />Apps</mdb-list-group-item>
-        </router-link>
+        </router-link> -->
         <router-link to="/programming" @click.native="activeItem = 2">
           <mdb-list-group-item
                   :action="true"
                   :class="activeItem === 2 && 'active'"
           ><mdb-icon icon="i-cursor" class="mr-3" style="width:16px;text-align:center" />Programming & Files</mdb-list-group-item>
         </router-link>
-        <router-link to="/update" @click.native="activeItem = 3">
+        <!-- <router-link to="/update" @click.native="activeItem = 3">
           <mdb-list-group-item
                   :action="true"
                   :class="activeItem === 3 && 'active'"
@@ -36,7 +36,7 @@
                   :action="true"
                   :class="activeItem === 4 && 'active'"
           ><mdb-icon icon="cog" class="mr-3" />Settings</mdb-list-group-item>
-        </router-link>
+        </router-link> -->
       </mdb-list-group>
     </div>
     <!-- notifications -->
