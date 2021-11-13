@@ -19,7 +19,7 @@ export default new Router({
       props: { page: 1 },
     },
     {
-      path: '/hh_webusb/programming',
+      path: '/hh_webusb',
       name: 'Programming & Files',
       props: { page: 2 },
       component: Programming,
