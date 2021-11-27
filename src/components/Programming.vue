@@ -5,18 +5,20 @@
         <section>
           <mdb-row>
             <mdb-col sm='6' md='4' lg='3'>
-              <mdb-btn color='gray' size='lg' title='Make folder' v-on:click='mkdir_ui()' icon='folder-plus'></mdb-btn>
-              <mdb-btn color='gray' size='lg' title='Make file' v-on:click='mkfile_ui()' icon='file'></mdb-btn>
-              <mdb-btn color='gray' size='lg' title='Rename file' v-on:click='rename_ui()' icon='file-alt'></mdb-btn>
-              <mdb-btn color='gray' size='lg' title='Delete file' v-on:click='trash_ui()' icon='trash'></mdb-btn>
-              <mdb-btn color='gray' size='lg' title='Download folder' v-on:click='download_ui()' icon='download'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Run fs' v-on:click='fs_ui()' icon='redo'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Make folder' v-on:click='mkdir_ui()' :disabled="mode != 1" icon='folder-plus'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Download folder' v-on:click='download_ui()' :disabled="mode != 1" icon='download'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Make file' v-on:click='mkfile_ui()' :disabled="mode != 1" icon='file'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Rename file' v-on:click='rename_ui()' :disabled="mode != 1" icon='file-alt'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Delete file' v-on:click='trash_ui()' :disabled="mode != 1" icon='trash'></mdb-btn>              
             </mdb-col>
             <mdb-col sm='2' md='2' lg='2'>
-              <mdb-btn color='gray' size='lg' title='Run file' v-on:click='runfile_ui()' icon='play'></mdb-btn>
-              <mdb-btn color='gray' size='lg' title='Save file' v-on:click='save_ui()' icon='save'></mdb-btn>
+              <mdb-btn color='gray' size='lg' title='Run file' v-on:click='runfile_ui()' :disabled="mode != 1" icon='play'></mdb-btn>
+              
+              <mdb-btn color='gray' size='lg' title='Save file' v-on:click='save_ui()' :disabled="mode != 1" icon='save'></mdb-btn>
             </mdb-col>
             <mdb-col sm='4' md='6' lg='7' class="mt-2">
-              <mdb-input label="Filename" v-model="editorfilename" size="md"/>
+              <mdb-input label="Filename" v-model="editorfilename" :disabled="mode != 1" size="md"/>
             </mdb-col>
           </mdb-row>
           <mdb-row class='mt-3'>
@@ -24,7 +26,7 @@
               <v-jstree :data='files' draggable multiple allow-batch whole-row @item-click='itemClick' @item-toggle='itemToggle' @item-drop-before='itemDrop' @item-drop='otherDrop' @item-drag-start='itemDragStart'></v-jstree>
             </mdb-col>
             <mdb-col sm='6' md='8' lg='9'>
-              <editor v-model='content_editor' lang='python' theme='monokai' height='500'></editor>
+              <editor v-model='content_editor' :setReadOnly="mode != 1" lang='python' theme='monokai' height='500' ref='pythoneditor'></editor>
             </mdb-col>
           </mdb-row>
           </section>
@@ -34,8 +36,9 @@
       <mdb-card-body>
         <section>
               Python terminal
+              <mdb-btn color='gray' size='lg' title='Run fs' v-on:click='repl_ui()' icon='play'></mdb-btn>
               <div class="md-form">
-                  <Terminal ref="terminal" v-on:data="commandpython"></Terminal>
+                  <Terminal ref="terminal" v-on:data="commandpython" :disabled="mode == 1"></Terminal>
               </div>
         </section>
       </mdb-card-body>
@@ -50,7 +53,7 @@ window.itemDrop = function() {
 
 import {mdbToastNotification, mdbBtn, mdbCard, mdbCardBody, mdbCol, mdbRow, mdbInput} from 'mdbvue';
 import VJstree from 'vue-jstree';
-  import {connect, on_connect, runfile, readfile, savefile, fetch_dir, createfolder, savetextfile, movefile, delfile, deldir, createfile, registerstdout, writetostdin, downloaddir} from '../webusb';
+  import {connect, on_connect, runfile, readfile, savefile, fetch_dir, createfolder, savetextfile, movefile, delfile, deldir, createfile, registerstdout, writetostdin, downloaddir, activate_repl, activate_fs, activate_app} from '../webusb';
 import * as $ from 'jquery';
 import * as ace from 'brace';
 import 'brace/mode/python';
@@ -91,6 +94,12 @@ export default {
     // Auto-fetch /flash
     registerstdout(commandlog);
     on_connect().then(() => this.itemClick({model: this.files[0]}));
+  },
+  watch: {
+    mode: function (val) {
+      let editor = this.$refs.pythoneditor.editor;
+      editor.setReadOnly(val != 1);
+    }
   },
   methods: {
     parseDir: (data) => {
@@ -310,8 +319,17 @@ export default {
         import_name = import_name.substr(1);
       }
       import_name = import_name.replace('/', '.')
-
-      runfile(import_name);
+      component.mode=2;
+      await runfile(import_name);
+      await activate_app();
+    },
+    repl_ui: async () => {
+      component.mode=0;
+      await activate_repl();
+    },
+    fs_ui: async () => {
+      component.mode=1;
+      await activate_fs();
     },
     info() {
 
@@ -323,9 +341,10 @@ export default {
   },
   data () {
     return {
+      mode:1,
       content_editor:'',
       content_original:'',
-      editorfilename:'/flash/cache/scratch.py',
+      editorfilename:'/scratch.py',
       show: true,
       files: [
         {

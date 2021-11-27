@@ -1,7 +1,7 @@
 /**
  * Created by Tom on 5/27/2020.
  */
-export let device = {opened: false};
+export let device = { opened: false };
 let command;
 let size = 0;
 let received = 0;
@@ -14,7 +14,7 @@ const packetheadersize = 12;
 let current_message_id = 0;
 let requests = {};
 let stdout_callback;
-
+let mode = 1;
 let MAX_RETRIES = 3;
 
 import * as $ from 'jquery';
@@ -22,31 +22,31 @@ import * as JSZip from 'jszip';
 
 
 function sendHeartbeat() {
-    let {buffer, message_id} = buildpacketWithFilename(0, 1, "beat");
-    send_buffer(buffer, message_id, true).then(data => {console.debug("Heartbeat")}, reason => {console.log("Heartbeat no response")});
+    let { buffer, message_id } = buildpacketWithFilename(0, 1, "beat");
+    send_buffer(buffer, message_id, true).then(data => { console.debug("Heartbeat") }, reason => { console.log("Heartbeat no response") });
 }
 
 //Function to create valid packet. Size is the payload size, command is the command id
 export function buildpacket(size, command) {
     //console.log(packetheadersize+size);
     current_message_id++;
-    let arraybuffer = new ArrayBuffer(12+size);
+    let arraybuffer = new ArrayBuffer(12 + size);
     let buffer = new Uint8Array(arraybuffer);
     new DataView(arraybuffer).setUint16(0, command, true);
     new DataView(arraybuffer).setUint32(2, size, true);
     new DataView(arraybuffer).setUint32(8, current_message_id, true);
     buffer[6] = 0xDE;
     buffer[7] = 0xAD;
-    return {buffer: buffer, message_id: current_message_id};
+    return { buffer: buffer, message_id: current_message_id };
 }
 
 export function buildpacketWithFilename(size, command, filename) {
-    let {buffer, message_id} = buildpacket(filename.length+1+size, command, message_id);
-    for(let i = 0; i<filename.length; i++) {
-        buffer[packetheadersize+i] = filename.charCodeAt(i);
+    let { buffer, message_id } = buildpacket(filename.length + 1 + size, command, message_id);
+    for (let i = 0; i < filename.length; i++) {
+        buffer[packetheadersize + i] = filename.charCodeAt(i);
     }
-    buffer[packetheadersize+filename.length] = 0;
-    return {buffer, message_id: message_id};
+    buffer[packetheadersize + filename.length] = 0;
+    return { buffer, message_id: message_id };
 }
 
 function rewritemessageid(buffer) {
@@ -60,14 +60,14 @@ function rewritemessageid(buffer) {
     return current_message_id;
 }
 
-export function send_buffer(buffer, message_id, return_string=true) {
+export function send_buffer(buffer, message_id, return_string = true) {
     let resolve, reject;
-    let promise = new Promise((_resolve, _reject) => {resolve = _resolve; reject = _reject;});
+    let promise = new Promise((_resolve, _reject) => { resolve = _resolve; reject = _reject; });
     let request = {
         buffer, // For retransmit
         resolve: (data) => {
-            if(return_string) {
-                if(data.byteLength === 0) {
+            if (return_string) {
+                if (data.byteLength === 0) {
                     resolve("");
                     return true;
                 } else {
@@ -80,8 +80,8 @@ export function send_buffer(buffer, message_id, return_string=true) {
                 return true;
             }
         },
-        reject: (reason, immediate_reject=false) => {
-            if(!immediate_reject && request.retries <= MAX_RETRIES) {
+        reject: (reason, immediate_reject = false) => {
+            if (!immediate_reject && request.retries <= MAX_RETRIES) {
                 request.retries++;
                 console.log(buffer);
                 rewritemessageid(buffer);
@@ -101,22 +101,22 @@ export function send_buffer(buffer, message_id, return_string=true) {
 
 export function fetch_dir(dir_name) {
     console.log('Fetching', dir_name);
-    if(dir_name === undefined || dir_name === '') {
+    if (dir_name === undefined || dir_name === '') {
         dir_name = '/';
     }
-    let {buffer, message_id} = buildpacket(dir_name.length+1, 4096);
-    for(let i = 0; i<dir_name.length; i++) {
-        buffer[packetheadersize+i] = dir_name.charCodeAt(i);
+    let { buffer, message_id } = buildpacket(dir_name.length + 1, 4096);
+    for (let i = 0; i < dir_name.length; i++) {
+        buffer[packetheadersize + i] = dir_name.charCodeAt(i);
     }
-    buffer[packetheadersize+dir_name.length] = 0;
+    buffer[packetheadersize + dir_name.length] = 0;
     return send_buffer(buffer, message_id, true);
 }
 
-export function readfile(file_name, return_string=true) {
-    let {buffer, message_id} = buildpacketWithFilename(0, 4097, file_name);
-    console.log("Reading: "+file_name)
+export function readfile(file_name, return_string = true) {
+    let { buffer, message_id } = buildpacketWithFilename(0, 4097, file_name);
+    console.log("Reading: " + file_name)
     return send_buffer(buffer, message_id, return_string).then((contents) => {
-        if(contents === 'Can\'t open file') {
+        if (contents === 'Can\'t open file') {
             contents = undefined;
         }
         return contents;
@@ -125,7 +125,7 @@ export function readfile(file_name, return_string=true) {
 
 export function createfile(dir_name) {
     console.log(dir_name)
-    let {buffer, message_id} = buildpacketWithFilename(0, 4098, dir_name);
+    let { buffer, message_id } = buildpacketWithFilename(0, 4098, dir_name);
     return send_buffer(buffer, message_id);
 }
 
@@ -134,9 +134,9 @@ export async function deldir(dir_name) {
     let dirlist = dir.split('\n');
     dirlist.unshift();
     console.log(dirlist);
-    for(let i = 1; i < dirlist.length; i++) {
+    for (let i = 1; i < dirlist.length; i++) {
         let item = dirlist[i];
-        if(item.charAt(0) == 'd') {
+        if (item.charAt(0) == 'd') {
             await deldir(dir_name + "/" + item.substr(1));
         } else {
             await delfile(dir_name + "/" + item.substr(1));
@@ -145,8 +145,8 @@ export async function deldir(dir_name) {
     await delfile(dir_name);
 }
 
-export async function downloaddir(dir_name, zip=undefined) {
-    if(zip === undefined) {
+export async function downloaddir(dir_name, zip = undefined) {
+    if (zip === undefined) {
         zip = new JSZip();
     }
 
@@ -154,9 +154,9 @@ export async function downloaddir(dir_name, zip=undefined) {
     let dirlist = dir.split('\n');
     dirlist.unshift();
     console.log(dirlist);
-    for(let i = 1; i < dirlist.length; i++) {
+    for (let i = 1; i < dirlist.length; i++) {
         let item = dirlist[i];
-        if(item.charAt(0) == 'd') {
+        if (item.charAt(0) == 'd') {
             await downloaddir(dir_name + "/" + item.substr(1), zip.folder(item.substr(1)));
         } else {
             let data = await readfile(dir_name + "/" + item.substr(1));
@@ -167,84 +167,84 @@ export async function downloaddir(dir_name, zip=undefined) {
 }
 
 export function delfile(dir_name) {
-    console.log("Deleting: "+dir_name);
-    let {buffer, message_id} = buildpacketWithFilename(0, 4099, dir_name);
+    console.log("Deleting: " + dir_name);
+    let { buffer, message_id } = buildpacketWithFilename(0, 4099, dir_name);
     return send_buffer(buffer, message_id);
 }
 
 export function runfile(file_path) {
-    if(file_path.startsWith('/flash')) {
+    if (file_path.startsWith('/flash')) {
         file_path = file_path.slice('/flash'.length);
     }
-    let {buffer, message_id} = buildpacketWithFilename(0, 0, file_path);
+    let { buffer, message_id } = buildpacketWithFilename(0, 0, file_path);
     return send_buffer(buffer, message_id);
 }
 
 export function duplicatefile(source, destination) {
-    let {buffer, message_id} = buildpacket(source.length+1+destination.length+1, 4100);
-    for(let i = 0; i<source.length; i++) {
-        buffer[packetheadersize+i] = source.charCodeAt(i);
+    let { buffer, message_id } = buildpacket(source.length + 1 + destination.length + 1, 4100);
+    for (let i = 0; i < source.length; i++) {
+        buffer[packetheadersize + i] = source.charCodeAt(i);
     }
-    buffer[packetheadersize+source.length] = 0;
+    buffer[packetheadersize + source.length] = 0;
 
-    for(let i = 0; i<destination.length; i++) {
-        buffer[packetheadersize+source.length+1+i] = destination.charCodeAt(i);
+    for (let i = 0; i < destination.length; i++) {
+        buffer[packetheadersize + source.length + 1 + i] = destination.charCodeAt(i);
     }
-    buffer[packetheadersize+source.length+1+destination.length] = 0;
+    buffer[packetheadersize + source.length + 1 + destination.length] = 0;
     //queue.enqueue(buffer);
     return send_buffer(buffer, message_id);
 }
 
 export function movefile(source, destination) {
-    let {buffer, message_id} = buildpacket(source.length+1+destination.length+1, 4101);
-    for(let i = 0; i<source.length; i++) {
-        buffer[packetheadersize+i] = source.charCodeAt(i);
+    let { buffer, message_id } = buildpacket(source.length + 1 + destination.length + 1, 4101);
+    for (let i = 0; i < source.length; i++) {
+        buffer[packetheadersize + i] = source.charCodeAt(i);
     }
-    buffer[packetheadersize+source.length] = 0;
+    buffer[packetheadersize + source.length] = 0;
 
-    for(let i = 0; i<destination.length; i++) {
-        buffer[packetheadersize+source.length+1+i] = destination.charCodeAt(i);
+    for (let i = 0; i < destination.length; i++) {
+        buffer[packetheadersize + source.length + 1 + i] = destination.charCodeAt(i);
     }
-    buffer[packetheadersize+source.length+1+destination.length] = 0;
+    buffer[packetheadersize + source.length + 1 + destination.length] = 0;
 
     return send_buffer(buffer, message_id);
 }
 
 export function copyfile(source, destination) {
-    let {buffer, message_id} = buildpacket(source.length+1+destination.length+1, 4100);
-    for(let i = 0; i<source.length; i++) {
-        buffer[packetheadersize+i] = source.charCodeAt(i);
+    let { buffer, message_id } = buildpacket(source.length + 1 + destination.length + 1, 4100);
+    for (let i = 0; i < source.length; i++) {
+        buffer[packetheadersize + i] = source.charCodeAt(i);
     }
-    buffer[packetheadersize+source.length] = 0;
+    buffer[packetheadersize + source.length] = 0;
 
-    for(let i = 0; i<destination.length; i++) {
-        buffer[packetheadersize+source.length+1+i] = destination.charCodeAt(i);
+    for (let i = 0; i < destination.length; i++) {
+        buffer[packetheadersize + source.length + 1 + i] = destination.charCodeAt(i);
     }
-    buffer[packetheadersize+source.length+1+destination.length] = 0;
+    buffer[packetheadersize + source.length + 1 + destination.length] = 0;
 
     return send_buffer(buffer, message_id);
 }
 
 export function savetextfile(filename, contents) {
     console.log(filename);
-    let {buffer, message_id} = buildpacketWithFilename(contents.length, 4098, filename);
-    for(let i = 0; i<contents.length; i++) {
-        buffer[packetheadersize+filename.length+1+i] = contents.charCodeAt(i);
+    let { buffer, message_id } = buildpacketWithFilename(contents.length, 4098, filename);
+    for (let i = 0; i < contents.length; i++) {
+        buffer[packetheadersize + filename.length + 1 + i] = contents.charCodeAt(i);
     }
 
     return send_buffer(buffer, message_id);
 }
 
 export function savefile(filename, contents) {
-    let {buffer, message_id} = buildpacketWithFilename(contents.byteLength, 4098, filename);
+    let { buffer, message_id } = buildpacketWithFilename(contents.byteLength, 4098, filename);
     let uint8 = new Uint8Array(buffer);
-    uint8.set(new Uint8Array(contents), packetheadersize+filename.length+1);
+    uint8.set(new Uint8Array(contents), packetheadersize + filename.length + 1);
     buffer = uint8.buffer;
     return send_buffer(buffer, message_id);
 }
 
 export function createfolder(folder) {
-    let {buffer, message_id} = buildpacketWithFilename(0, 4102, folder);
+    let { buffer, message_id } = buildpacketWithFilename(0, 4102, folder);
     return send_buffer(buffer, message_id);
 }
 
@@ -252,11 +252,11 @@ export function handlePacket(message_type, message_id, data) {
     let textdecoder = undefined;
     let file_contents = undefined;
 
-    if(message_type === 3 && message_id === 0) {
+    if (message_type === 3 && message_id === 0) {
         textdecoder = new TextDecoder("ascii");
         let consolelog = textdecoder.decode(data);
         console.log(consolelog);
-        if(stdout_callback) {
+        if (stdout_callback) {
             stdout_callback(consolelog);
         }
     }
@@ -266,17 +266,17 @@ export function handlePacket(message_type, message_id, data) {
         file_contents = textdecoder.decode(data);
         file_contents = file_contents.substring(0, 2);
         if (file_contents === "to") {
-            for(let key in requests) {
+            for (let key in requests) {
                 let request = requests[key];
-                if(!request.reject('Timeout')) {
+                if (!request.reject('Timeout')) {
                     requests[current_message_id] = request;
                 }
                 delete requests[key];
             }
         } else if (file_contents === "te") {
-            for(let key in requests) {
+            for (let key in requests) {
                 let request = requests[key];
-                if(!request.reject('Timeout')) {
+                if (!request.reject('Timeout')) {
                     requests[current_message_id] = request;
                 }
                 delete requests[key];
@@ -285,16 +285,16 @@ export function handlePacket(message_type, message_id, data) {
         return;
     }
 
-    for(let key in requests) {
+    for (let key in requests) {
         let request = requests[key];
-        if(key < message_id) {
+        if (key < message_id) {
             request.reject('No response');
             delete requests[key];
-        } else if(key == message_id) {
-            if(data.byteLength === 3) {
+        } else if (key == message_id) {
+            if (data.byteLength === 3) {
                 let textdecoder = new TextDecoder("ascii");
                 let text_content = textdecoder.decode(data.slice(0, 2));
-                if(text_content === 'er') {
+                if (text_content === 'er') {
                     request.reject('Unspecified error', true);  //Immediate reject when proper error is received
                 } else {
                     request.resolve(data, true);
@@ -333,27 +333,27 @@ export function writetostdin(stdin) {
 }
 
 let readdata_serial = () => {
-    device.transferIn(3, 64).then(result => {
+    device.transferIn(3, 32).then(result => {
         let decoder = new TextDecoder("ascii");
         //console.log(decoder.decode(result.data.buffer));
         stdout_callback(decoder.decode(result.data.buffer));
-        readdata_serial();    
+        readdata_serial();
     }, error => {
         this.onReceiveError(error);
     });
 };
 
 let readdata_fs = () => {
-    device.transferIn(4, 64).then(result => {
+    device.transferIn(4, 32).then(result => {
         let parsedbytes = 0;
         let totalbytes = result.data.byteLength;
-        while(parsedbytes != totalbytes) {
-            if(received == size) { //Should read a new packet header
-                if((totalbytes - parsedbytes) < 12) break; //Can never be a full packet header. Discard data and hope for the best              
-                if(parsepacketheader(result.data.buffer.slice(parsedbytes, parsedbytes+12))) {
+        while (parsedbytes != totalbytes) {
+            if (received == size) { //Should read a new packet header
+                if ((totalbytes - parsedbytes) < 12) break; //Can never be a full packet header. Discard data and hope for the best              
+                if (parsepacketheader(result.data.buffer.slice(parsedbytes, parsedbytes + 12))) {
                     payload = new ArrayBuffer(size);
-                    console.log("Command: "+command+" Size: "+size+" id: "+messageid_recv);
-                    if(size == 0) handlePacket(command, messageid_recv, payload);
+                    console.log("Command: " + command + " Size: " + size + " id: " + messageid_recv);
+                    if (size == 0) handlePacket(command, messageid_recv, payload);
                 } else {
                     console.log("Error in packet header");
                     received = 0;
@@ -361,17 +361,17 @@ let readdata_fs = () => {
                 }
                 parsedbytes += 12;
             } else {
-                let sizetocopy = Math.min(size, totalbytes-parsedbytes, size-received);
-                new Uint8Array(payload, received, size-received).set(new Uint8Array(result.data.buffer, parsedbytes, sizetocopy));
+                let sizetocopy = Math.min(size, totalbytes - parsedbytes, size - received);
+                new Uint8Array(payload, received, size - received).set(new Uint8Array(result.data.buffer, parsedbytes, sizetocopy));
                 parsedbytes += sizetocopy;
                 received += sizetocopy;
-                console.log("Transfer status: "+received+"/"+size);
-                if(received == size) {
+                console.log("Transfer status: " + received + "/" + size);
+                if (received == size) {
                     handlePacket(command, messageid_recv, payload);
                 }
             }
         }
-        readdata_fs();    
+        readdata_fs();
     }, error => {
         this.onReceiveError(error);
     });
@@ -389,17 +389,17 @@ function parsepacketheader(data) {
 
 let connect_resolves = [];
 function connect_check() {
-    if(device !== undefined && device.opened) {
-        for(let resolve of connect_resolves) {
+    if (device !== undefined && device.opened) {
+        for (let resolve of connect_resolves) {
             resolve();
         }
         connect_resolves = [];
     }
 }
 setInterval(connect_check, 500);
-setInterval(function(){
-    if(device.opened) {
-        if(Object.keys(requests).length < 5)
+setInterval(function () {
+    if (device.opened) {
+        if (Object.keys(requests).length < 5)
             sendHeartbeat();
     }
 }, 500);
@@ -409,6 +409,66 @@ setInterval(function(){
 
 export function on_connect() {
     //return new Promise((resolve) => connect_resolves.push(resolve));
+}
+
+export async function activate_repl() {
+    mode = 0;
+    await device.controlTransferOut({
+        requestType: 'class',
+        recipient: 'interface',
+        request: 0x23,
+        value: 0,
+        index: 0x02
+    }); // Switch to fs mode
+    var enc = new TextEncoder(); // always utf-8
+    await device.transferOut(3, enc.encode(String.fromCharCode(4)));
+    await device.controlTransferOut({
+        requestType: 'class',
+        recipient: 'interface',
+        request: 0x22,
+        value: 0,
+        index: 0x02
+    }); // Switch to fs mode
+}
+
+export async function activate_fs() {
+    mode = 1;
+    await device.controlTransferOut({
+        requestType: 'class',
+        recipient: 'interface',
+        request: 0x23,
+        value: 1,
+        index: 0x02
+    }); // Switch to fs mode
+    var enc = new TextEncoder(); // always utf-8
+    await device.transferOut(3, enc.encode(String.fromCharCode(4)));
+    await device.controlTransferOut({
+        requestType: 'class',
+        recipient: 'interface',
+        request: 0x22,
+        value: 0,
+        index: 0x02
+    }); // Switch to fs mode
+}
+
+export async function activate_app() {
+    mode = 2;
+    await device.controlTransferOut({
+        requestType: 'class',
+        recipient: 'interface',
+        request: 0x23,
+        value: 2,
+        index: 0x02
+    }); // Switch to fs mode
+    var enc = new TextEncoder(); // always utf-8
+    await device.transferOut(3, enc.encode(String.fromCharCode(4)));
+    await device.controlTransferOut({
+        requestType: 'class',
+        recipient: 'interface',
+        request: 0x22,
+        value: 0,
+        index: 0x02
+    }); // Switch to fs mode
 }
 
 export async function connect() {
@@ -427,6 +487,7 @@ export async function connect() {
     await device.selectConfiguration(1);
     await device.claimInterface(2); //Claim the interface for serial in/out
     await device.claimInterface(3); //Claim the interface for the fs actions
+    await activate_fs()
     readdata_serial();
     readdata_fs();
     console.log("Connected")
