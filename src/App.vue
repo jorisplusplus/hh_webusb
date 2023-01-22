@@ -4,7 +4,7 @@
       <mdb-modal-header>
         <mdb-modal-title>Let's get started</mdb-modal-title>
       </mdb-modal-header>
-      <mdb-modal-body>Click anywhere to connect to your CampZone2020 Event Badge via USB</mdb-modal-body>
+      <mdb-modal-body>Click anywhere to connect to your HackerHotel 2023 Event Badge via USB</mdb-modal-body>
     </mdb-modal>
     <!-- Sidebar -->
     <div class="sidebar-fixed position-fixed">
@@ -55,7 +55,7 @@
         <div class="pb-4 pt-4">
           <a href="https://twitter.com/hackzonenl"><mdb-icon fab icon="twitter" class="mr-3"/></a>
           <a href="https://www.youtube.com/watch?v=G0mEW8f2vac"><mdb-icon fab icon="youtube" class="mr-3"/></a>
-          <a href="https://github.com/hackzone"><mdb-icon fab icon="github" class="mr-3"/></a>
+          <a href="https://github.com/HackerHotel"><mdb-icon fab icon="github" class="mr-3"/></a>
         </div>
       </ftr>
     </main>

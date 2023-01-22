@@ -1,6 +1,6 @@
 <template>
   <section id='programming'>
-    <mdb-card class='mb-4' ondrop='itemDrop'>
+    <!-- <mdb-card class='mb-4' ondrop='itemDrop'>
       <mdb-card-body>
         <section>
           <mdb-row>
@@ -31,7 +31,7 @@
           </mdb-row>
           </section>
       </mdb-card-body>
-    </mdb-card>
+    </mdb-card> -->
       <mdb-card class='mb-4'>
       <mdb-card-body>
         <section>
@@ -80,13 +80,13 @@ export default {
   name: 'Programming',
   components: {
     mdbBtn,
-    mdbRow,
-    mdbCol,
+    //mdbRow,
+    //mdbCol,
     mdbCard,
     mdbCardBody,
-    mdbInput,
-    VJstree,
-    editor:ace_editor,
+    //mdbInput,
+    //VJstree,
+    //editor:ace_editor,
     Terminal,
   },
   beforeMount() {
